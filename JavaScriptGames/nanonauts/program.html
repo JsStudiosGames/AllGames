@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nanonaut Action</title>
+</head>
+<body>
+<script>
+    //Constants
+    var Canvas_Width = 800;
+    var Canvas_Height = 600;
+    var Nanonaut_Width = 181;
+    var Nanonaut_Height = 229;
+    var Ground_Y = 540;
+    var Nanonaut_Y_Acceleration = 1;
+    var Space_Keycode = 32;
+    var Nanonaut_Jump_Speed = 20;
+    var Nanonaut_X_Speed = 5;
+    var Background_Width = 1000;
+    var Nanonaut_Nr_Frames_Per_Row = 5;
+    var Nanonaut_Nr_Animation_Frames = 7;
+    var Nanonaut_Animation_Speed = 3;
+
+    //Setup
+    var canvas = document.createElement('canvas');
+    var c = canvas.getContext('2d');
+    canvas.width = Canvas_Width;
+    canvas.height = Canvas_Height;
+    document.body.appendChild(canvas);
+
+    var nanonautImage = new Image();
+    nanonautImage.src = 'animatedNanonaut.png';
+    var backgroundImage = new Image();
+    backgroundImage.src = 'background.png';
+    var bush1Image = new Image();
+    bush1Image.src = 'bush1.png';
+
+    var nanonautX = Canvas_Width / 2;
+    var nanonautY = Ground_Y - Nanonaut_Height;
+
+    var nanonautYSpeed = 0;
+
+    var spaceKeyIsPressed = false;
+    var nanonautFrameNr = 0;
+    var nanonautIsInTheAir = false;
+
+    var gameFrameCounter = 0;
+
+    var cameraX = 0;
+    var cameraY = 0;
+   
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
+
+    window.addEventListener('load', start);
+
+    function start()
+    {
+        window.requestAnimationFrame(mainLoop);
+    }
+
+    //Main Loop
+    function mainLoop()
+    {
+        update();
+        draw();
+        window.requestAnimationFrame(mainLoop);
+    }
+
+    //Player Input
+    function onKeyDown(event)
+    {
+        if (event.keyCode === Space_Keycode)
+        {
+            spaceKeyIsPressed = true;
+        }
+    }
+    function onKeyUp(event)
+    {
+        if (event.keyCode === Space_Keycode)
+        {
+            spaceKeyIsPressed = false;
+        }
+    }
+
+    //Updating
+    function update()
+    {
+        //Update Nanonaut
+        nanonautY = nanonautY + nanonautYSpeed;
+        nanonautX = nanonautX + Nanonaut_X_Speed;
+        nanonautYSpeed = nanonautYSpeed + Nanonaut_Y_Acceleration;
+        if (nanonautY > (Ground_Y - Nanonaut_Height))
+        {
+            nanonautY = Ground_Y - Nanonaut_Height; 
+            nanonautYSpeed = 0;
+            nanonautIsInTheAir = false;
+        }
+
+        if (spaceKeyIsPressed && !nanonautIsInTheAir)
+        {
+            nanonautYSpeed = -Nanonaut_Jump_Speed;
+            nanonautIsInTheAir = true;
+        }
+
+        //Update Animation
+        gameFrameCounter = gameFrameCounter + 1;
+        if ((gameFrameCounter % Nanonaut_Animation_Speed) === 0)
+        {
+            nanonautFrameNr = nanonautFrameNr + 1;
+            if (nanonautFrameNr >= Nanonaut_Nr_Animation_Frames)
+            {
+                nanonautFrameNr = 0;
+            }
+        }
+
+        //Update Camera
+        cameraX = nanonautX - 150;
+    }
+
+    //Drawing
+    function draw()
+    {
+        //Draw the sky
+        c.fillStyle = 'LightSkyBlue';
+        c.fillRect(0, 0, Canvas_Width, Ground_Y - 40);
+
+        //Draw background
+        var backgroundX = -(cameraX % Background_Width);
+        c.drawImage(backgroundImage, backgroundX, -210);
+        c.drawImage(backgroundImage, backgroundX + Background_Width, -210);
+
+        //Draw the ground
+        c.fillStyle = 'ForestGreen';
+        c.fillRect(0, Ground_Y - 40, Canvas_Width, Canvas_Height - Ground_Y + 40);
+
+        //Draw the bush1
+        c.drawImage(bush1Image, 550, Ground_Y - 90);
+        c.drawImage(bush1Image, 750, Ground_Y - 100);
+
+        //Draw the player
+        var nanonautSpriteSheetRow = Math.floor(nanonautFrameNr / Nanonaut_Nr_Frames_Per_Row);
+        var nanonautSpriteSheetColumn = nanonautFrameNr % Nanonaut_Nr_Frames_Per_Row;
+        var nanonautSpriteSheetX = nanonautSpriteSheetColumn * Nanonaut_Width;
+        var nanonautSpriteSheetY = nanonautSpriteSheetRow * Nanonaut_Height;
+        c.drawImage(nanonautImage, nanonautSpriteSheetX, nanonautSpriteSheetY, Nanonaut_Width,
+        Nanonaut_Height, nanonautX - cameraX, nanonautY - cameraY, Nanonaut_Width, Nanonaut_Height);
+    }
+</script>
+</body>
+</html>
